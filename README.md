@@ -9,3 +9,11 @@ In this repository, I am investigating which mutation rate estimate is better of
 3. Estimate mutation rates using both a and b
 4. Repeat 2-3 for a few times. Check mean and variance.
 5. Repeat 2-4 for different known mutation rates.
+
+## Output
+Mean mutation rate (existing method):  0.09999986312313493
+Variance mutation rate (existing method):  1.9638175160219807e-06
+Mean mutation rate (new method):  0.10011732415084007
+Variance mutation rate (new method):  1.1274415123815784e-06
+
+May be better?
