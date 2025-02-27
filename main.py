@@ -105,36 +105,59 @@ def compute_mutation_rate_three_counts(k, num_kmers_0_mutation, num_kmers_1_muta
 
 def main():
     L = 100000
-    mut_rate = 0.1
-    k = 21
-    num_iters = 100
+    mut_rates = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+    k = 31
+    num_iters = 10
+    
+    est_mut_rate_means = []
+    est_mut_rate_vars = []
+    est_mut_rate_means_new = []
+    est_mut_rate_vars_new = []
     
     # create a random string
     input_string = create_random_string(L)
+
+    for mut_rate in mut_rates:
     
-    est_mut_rates_existing = []
-    est_mut_rates_new = []
-    
-    for i in range(num_iters):
-        # mutate the string
-        output_string, kmer_counts = mutate_string(input_string, mut_rate, k)
+        est_mut_rates_existing = []
+        est_mut_rates_new = []
         
-        print("Number of kmers with 0, 1, or >1 mutations: ", kmer_counts)
+        for i in range(num_iters):
+            # mutate the string
+            output_string, kmer_counts = mutate_string(input_string, mut_rate, k)
+            
+            # compute the mutation rate
+            p = compute_mutation_rate_two_counts(k, kmer_counts[0], kmer_counts[1]+kmer_counts[2])
+            est_mut_rates_existing.append(p[0])
+            
+            # compute the mutation rate
+            p = compute_mutation_rate_three_counts(k, kmer_counts[0], kmer_counts[1], kmer_counts[2])
+            est_mut_rates_new.append(p[0])
         
-        # compute the mutation rate
-        p = compute_mutation_rate_two_counts(k, kmer_counts[0], kmer_counts[1]+kmer_counts[2])
-        est_mut_rates_existing.append(p[0])
+        est_mut_rate_means.append(np.mean(est_mut_rates_existing))
+        est_mut_rate_vars.append(np.var(est_mut_rates_existing))
         
-        # compute the mutation rate
-        p = compute_mutation_rate_three_counts(k, kmer_counts[0], kmer_counts[1], kmer_counts[2])
-        est_mut_rates_new.append(p[0])
-    
-    # show mean and variance
-    print("Mean mutation rate (existing method): ", np.mean(est_mut_rates_existing))
-    print("Variance mutation rate (existing method): ", np.var(est_mut_rates_existing))
-    
-    print("Mean mutation rate (new method): ", np.mean(est_mut_rates_new))
-    print("Variance mutation rate (new method): ", np.var(est_mut_rates_new))
+        est_mut_rate_means_new.append(np.mean(est_mut_rates_new))
+        est_mut_rate_vars_new.append(np.var(est_mut_rates_new))
+        
+        print("True mutation rate: ", mut_rate)
+        print("Estimated mutation rate (existing method): ", np.mean(est_mut_rates_existing))
+        print("Estimated mutation rate (new method): ", np.mean(est_mut_rates_new))
+        print("Variance (existing method): ", np.var(est_mut_rates_existing))
+        print("Variance (new method): ", np.var(est_mut_rates_new))
+        print()
+        
+    # plot the results
+    plt.figure(figsize=(10, 5))
+    plt.errorbar(mut_rates, est_mut_rate_means, yerr=est_mut_rate_vars, fmt='o-', label='Existing Method (using containment)')
+    plt.errorbar(mut_rates, est_mut_rate_means_new, yerr=est_mut_rate_vars_new, fmt='o-', label='New Method (using MLE)')
+    plt.xlabel('True Mutation Rate')
+    plt.ylabel('Estimated Mutation Rate')
+    plt.title('Mutation Rate Estimation')
+    # show y=x line
+    plt.plot([0.05, 0.3], [0.05, 0.3], 'k--')
+    plt.legend()
+    plt.savefig('mutation_rate_estimation.pdf')
     
     
 if __name__ == "__main__":
